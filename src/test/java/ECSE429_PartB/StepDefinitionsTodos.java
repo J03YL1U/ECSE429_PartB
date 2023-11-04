@@ -7,43 +7,25 @@ import okhttp3.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.junit.Assert;
-import org.junit.jupiter.api.BeforeAll;
-
-import java.io.IOException;
-
+import org.junit.jupiter.api.MethodOrderer.Random;
+import org.junit.jupiter.api.TestMethodOrder;
 import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@TestMethodOrder(Random.class)
 public class StepDefinitionsTodos {
 
     static OkHttpClient client = new OkHttpClient();
 
-    @BeforeAll
-    public static void checkApiAvailability() {
-        //OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder()
-                .url("http://localhost:4567/")
-                .build();
-        boolean isApiAvailable;
-        try {
-            Response response = client.newCall(request).execute();
-            isApiAvailable = (response.code() == 200);
-        } catch (IOException e) {
-            Assert.fail("We are not connected, please make sure we are connected to the API");
-            isApiAvailable = false;
-        }
-    }
-
-    /* Story 1 */
+    /* Creating a new Todo task */
 
     /* Normal Flow */
-
-    String testid;
-    String testid2;
+    String idExistingTodo;
+    String idNewTodo;
     JSONArray errorMessage;
 
-    @Given("a todo task list {string}")
-    public void a_todo_task_list(String title) throws Exception{
+    @Given("a list of todo task {string}")
+    public void a_list_of_todo_task(String title) throws Exception{
 
         JSONObject obj = new JSONObject();
 
@@ -64,7 +46,7 @@ public class StepDefinitionsTodos {
         JSONParser parser = new JSONParser();
         JSONObject responseJson = (JSONObject) parser.parse(responseBody);
 
-        testid = (String) responseJson.get("id");
+        idExistingTodo = (String) responseJson.get("id");
     }
 
     @When("I create the todo task {string}")
@@ -90,13 +72,13 @@ public class StepDefinitionsTodos {
         JSONObject responseJson = (JSONObject) parser.parse(responseBody);
 
         errorMessage = (JSONArray) responseJson.get("errorMessages");
-        testid2 = (String) responseJson.get("id");
+        idNewTodo = (String) responseJson.get("id");
     }
 
-    @Then("the returned todo status code of the system is {string}")
-    public void the_returned_status_code_of_the_system_is(String statusCode) throws Exception{
+    @Then("the expected todo status code received from the system is {string}")
+    public void the_expected_todo_status_code_received_from_the_system_is(String statusCode) throws Exception{
         Request request = new Request.Builder()
-                .url("http://localhost:4567/todos/"+testid2)
+                .url("http://localhost:4567/todos/"+idNewTodo)
                 .get()
                 .build();
 
@@ -104,11 +86,26 @@ public class StepDefinitionsTodos {
         assertEquals(Integer.parseInt(statusCode), response.code());
     }
 
-
-    @Then("{string} todo will be in the list {string}")
-    public void todo_will_be_in_the_list(String todo, String todoList) throws Exception {
+    @Then("the number of todo tasks in the system will be {string}")
+    public void the_number_of_todo_tasks_in_the_system_will_be(String numberOfTasks) throws Exception {
         Request request = new Request.Builder()
-                .url("http://localhost:4567/todos/"+testid2)
+                .url("http://localhost:4567/todos")
+                .get()
+                .build();
+        Response response = client.newCall(request).execute();
+        String responseBody = response.body().string();
+
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+        JSONArray todos = (JSONArray) responseJson.get("todos");
+
+        assertEquals(Integer.parseInt(numberOfTasks), todos.size());
+    }
+
+    @Then("{string} todo will be in the list of todo tasks")
+    public void todo_will_be_in_the_list(String added_todo_task) throws Exception {
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/todos")
                 .get()
                 .build();
 
@@ -119,14 +116,18 @@ public class StepDefinitionsTodos {
 
         JSONParser parser = new JSONParser();
         JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+        JSONArray todos = (JSONArray) responseJson.get("todos");
 
-        JSONObject jsonObject = new JSONObject(responseJson);
-        JSONArray todos = (JSONArray) jsonObject.get("todos");
-        String[] parts = todoList.split(",");
+        boolean todoTaskAdded = false;
+
         for (Object todoObject : todos) {
-            JSONObject category = (JSONObject) todoObject;
-            String title = (String) category.get("title");
-            assertEquals(parts[1], title);
+            JSONObject todo = (JSONObject) todoObject;
+            String title = (String) todo.get("title");
+            if(title.equals(added_todo_task)){
+                todoTaskAdded = true;
+            }
         }
+
+        assertTrue(todoTaskAdded);
     }
 }
