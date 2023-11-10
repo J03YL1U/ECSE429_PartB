@@ -19,7 +19,7 @@ public class StepDefinitionsCommon {
             ProcessBuilder processBuilder = new ProcessBuilder("java", "-jar", filePath);
             apiProcess = processBuilder.start();
 
-            Thread.sleep(1000);
+            Thread.sleep(1500);
 
             Request request = new Request.Builder()
                     .url("http://localhost:4567/")
@@ -48,4 +48,6 @@ public class StepDefinitionsCommon {
             throw new RuntimeException("Error shutting down the API: " + e.getMessage(), e);
         }
     }
+
+
 }
