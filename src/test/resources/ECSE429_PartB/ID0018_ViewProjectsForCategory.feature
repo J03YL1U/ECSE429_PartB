@@ -1,7 +1,7 @@
 @scenarioOutline
 Feature: Get projects from category
   As a user,
-  As a user, I want to see the project items related to a specific category, so that I can keep track of a category and its project
+  As a user, I want to see the project items related to a specific category, so that I can keep track of a category and its pSrojects.
 
   # Normal Flow
   @scenarioOutline
@@ -16,7 +16,7 @@ Feature: Get projects from category
 
   # Alternate Flow (Special characters title)
   @scenarioOutline
-  Scenario Outline: See projects related to specific category - Special title
+  Scenario Outline: See projects related to specific category - special title
     Given a category with id "<id_cat>"
     When I create project with title "<title>" for category with id "<id_cat>" with status "<status>"
     Then verify project with title "<title>" exists under category "<id_cat>"
@@ -26,7 +26,7 @@ Feature: Get projects from category
 
   # Error Flow - No category with id
   @scenarioOutline
-  Scenario Outline: See projects related to specific category - Non-existing category
+  Scenario Outline: See projects related to specific category - non-existing category
     When I create project with title "<title>" for category with id "<id_cat>" with status "<status>"
     Examples:
       | id_cat | title        | status |

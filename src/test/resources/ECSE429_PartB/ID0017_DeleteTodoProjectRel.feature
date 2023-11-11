@@ -1,11 +1,11 @@
 @scenarioOutline
-Feature: Delete Todo Project Relationship
+Feature: Delete todo project Relationship
   As a user,
-  I want to delete a todo’s attached project, so that I can reorganise my todos.
+  I want to delete a todo’s project relationship, so that I can better keep track of a todo's status.
 
   # Normal Flow
   @scenarioOutline
-  Scenario Outline: Delete Todo and Projects Rel
+  Scenario Outline: Delete todo and projects rel
     Given a todo with id "<id_todo>"
     Given a project with id "<id_proj>"
     When I delete relationship between todo "<id_todo>" and project "<id_proj>" with status "<status>"
@@ -17,7 +17,7 @@ Feature: Delete Todo Project Relationship
 
   # Alternate Flow (Malformed request despite being a string)
   @scenarioOutline
-  Scenario Outline: Delete Todo and Projects Rel - Bad ID
+  Scenario Outline: Delete todo and projects rel - bad ID
     Given a project with id "<id_proj>"
     When I delete relationship between todo "<id_todo>" and project "<id_proj>" with status "<status>"
     Examples:
@@ -26,7 +26,7 @@ Feature: Delete Todo Project Relationship
 
   # Error Flow - Project does not exist
   @scenarioOutline
-  Scenario Outline: Delete Todo and Projects Rel - Non-existing project
+  Scenario Outline: Delete todo and projects rel - non-existing project
     Given a project with id "<id_proj>"
     When I delete relationship between todo "<id_todo>" and project "<id_proj>" with status "<status>"
     Examples:
