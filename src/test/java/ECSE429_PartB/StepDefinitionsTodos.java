@@ -528,7 +528,7 @@ public class StepDefinitionsTodos {
         Response response = client.newCall(request).execute();
         statusCode = response.code();
     }
-
+    /*------------------------------------------ ID016_DeleteCategoryProjectRel ------------------------------------------*/
     @Given("a category with id {string}")
     public void a_category_with_id(String someid) throws Exception {
         Request request = new Request.Builder()
@@ -662,6 +662,7 @@ public class StepDefinitionsTodos {
         assertEquals(0, projects.size());
     }
 
+    /*------------------------------------------ ID017_DeleteTodoProjectRel ------------------------------------------*/
     @When("I delete relationship between todo {string} and project {string} with status {string}")
     public void i_delete_todo_project_rel(String id1, String id2, String aStatus) throws Exception {
         Request request = new Request.Builder()
@@ -711,6 +712,7 @@ public class StepDefinitionsTodos {
         }
     }
 
+    /*------------------------------------------ ID019_DeleteProjectCategoryRel ------------------------------------------*/
     @Then("I delete project {string} relationship to category {string} relationship with status {string}")
     public void i_delete_project_category_rel(String id1, String id2, String aStatus) throws Exception {
         Request request = new Request.Builder()
@@ -744,6 +746,7 @@ public class StepDefinitionsTodos {
         }
     }
 
+    /*------------------------------------------ ID020_DeleteProjectTaskTodoRel ------------------------------------------*/
     @When("I delete relationship between project {string} and todo {string} with status {string}")
     public void i_delete_project_todo_rel(String id1, String id2, String aStatus) throws Exception {
         Request request = new Request.Builder()
