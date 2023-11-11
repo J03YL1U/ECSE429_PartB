@@ -9,7 +9,9 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.jupiter.api.MethodOrderer.Random;
 import org.junit.jupiter.api.TestMethodOrder;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(Random.class)
@@ -526,4 +528,252 @@ public class StepDefinitionsTodos {
         Response response = client.newCall(request).execute();
         statusCode = response.code();
     }
+
+    @Given("a category with id {string}")
+    public void a_category_with_id(String someid) throws Exception {
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/categories/" + someid)
+                .get()
+                .build();
+
+        Response response = client.newCall(request).execute();
+        assertEquals(200, response.code());
+
+        String responseBody = response.body().string();
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+        JSONArray categories = (JSONArray) responseJson.get("categories");
+
+        for (Object categoryObject : categories) {
+            JSONObject category = (JSONObject) categoryObject;
+            String id = (String) category.get("id");
+            assertEquals(someid, id);
+        }
+    }
+
+    @Given("a todo with id {string}")
+    public void a_todo_with_id(String someid) throws Exception {
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/todos/" + someid)
+                .get()
+                .build();
+
+        Response response = client.newCall(request).execute();
+        assertEquals(200, response.code());
+
+        String responseBody = response.body().string();
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+        JSONArray categories = (JSONArray) responseJson.get("todos");
+
+        for (Object categoryObject : categories) {
+            JSONObject category = (JSONObject) categoryObject;
+            String id = (String) category.get("id");
+            assertEquals(someid, id);
+        }
+    }
+
+    @Given("a project with id {string}")
+    public void a_project_with_id(String someid) throws Exception {
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/projects/" + someid)
+                .get()
+                .build();
+
+        Response response = client.newCall(request).execute();
+        assertEquals(200, response.code());
+
+        String responseBody = response.body().string();
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+        JSONArray categories = (JSONArray) responseJson.get("projects");
+
+        for (Object categoryObject : categories) {
+            JSONObject category = (JSONObject) categoryObject;
+            String id = (String) category.get("id");
+            assertEquals(someid, id);
+        }
+    }
+
+
+    @When("I create project with title {string} for category with id {string} with status {string}")
+    public void i_create_project_title_for_category(String title, String id, String aStatus) throws Exception {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("title", title);
+
+        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonObject.toString());
+
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/categories/" + id + "/projects")
+                .post(requestBody)
+                .build();
+
+        Response response = client.newCall(request).execute();
+        assertEquals(Integer.parseInt(aStatus), response.code());
+        if (Integer.parseInt(aStatus) == 201){
+            assertEquals("Created", response.message());
+        }
+
+    }
+    @When("I create relationship categories with title {string} for project with id {string}")
+    public void i_create_categories_relationship_for_project(String title, String id) throws Exception {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("title", title);
+
+        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonObject.toString());
+
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/projects/" + id + "/categories")
+                .post(requestBody)
+                .build();
+
+        Response response = client.newCall(request).execute();
+        assertEquals(201, response.code());
+        assertEquals("Created", response.message());
+    }
+
+
+    @Then("I delete category {string} and project {string} relationship with status {string}")
+    public void i_delete_todo_category_rel(String id1, String id2, String aStatus) throws Exception {
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/categories/" + id1 + "/projects/" + id2)
+                .delete()
+                .build();
+
+        Response response = client.newCall(request).execute();
+        assertEquals(Integer.parseInt(aStatus), response.code());
+    }
+
+
+    @Then("there is no project for category {string}")
+    public void rel_between_todo_category_does_not_exist(String id1) throws Exception {
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/categories/" + id1 + "/projects")
+                .get()
+                .build();
+
+        Response response = client.newCall(request).execute();
+
+        String responseBody = response.body().string();
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+        JSONArray projects = (JSONArray) responseJson.get("projects");
+
+        assertEquals(0, projects.size());
+    }
+
+    @When("I delete relationship between todo {string} and project {string} with status {string}")
+    public void i_delete_todo_project_rel(String id1, String id2, String aStatus) throws Exception {
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/todos/" + id1 + "/tasksof/" + id2)
+                .delete()
+                .build();
+
+        Response response = client.newCall(request).execute();
+        assertEquals(Integer.parseInt(aStatus), response.code());
+    }
+    @Then("deleted relationship for todo {string} and project does not exist")
+    public void no_rel_between_todo_and_project(String id1) throws Exception {
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/todos/" + id1 + "/tasksof")
+                .get()
+                .build();
+
+        Response response = client.newCall(request).execute();
+
+        String responseBody = response.body().string();
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+        JSONArray projects = (JSONArray) responseJson.get("projects");
+
+        assertEquals(0, projects.size());
+    }
+
+    @Then("verify project with title {string} exists under category {string}")
+    public void no_rel_between_todo_and_project(String sometitle, String someid) throws Exception {
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/categories/" + someid + "/projects")
+                .get()
+                .build();
+
+        Response response = client.newCall(request).execute();
+        assertEquals(200, response.code());
+
+        String responseBody = response.body().string();
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+        JSONArray categories = (JSONArray) responseJson.get("projects");
+
+        for (Object categoryObject : categories) {
+            JSONObject category = (JSONObject) categoryObject;
+            String id = (String) category.get("title");
+            assertEquals(sometitle, id);
+        }
+    }
+
+    @Then("I delete project {string} relationship to category {string} relationship with status {string}")
+    public void i_delete_project_category_rel(String id1, String id2, String aStatus) throws Exception {
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/projects/" + id1 + "/categories/" + id2)
+                .delete()
+                .build();
+
+        Response response = client.newCall(request).execute();
+        assertEquals(Integer.parseInt(aStatus), response.code());
+    }
+
+    @Then("there is no category for project {string}")
+    public void no_category_for_project_id(String someid) throws Exception {
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/projects/" + someid)
+                .get()
+                .build();
+
+        Response response = client.newCall(request).execute();
+        assertEquals(200, response.code());
+
+        String responseBody = response.body().string();
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+        JSONArray categories = (JSONArray) responseJson.get("projects");
+
+        for (Object categoryObject : categories) {
+            JSONObject category = (JSONObject) categoryObject;
+            String val = (String) category.get("categories");
+            assertEquals(val, null);
+        }
+    }
+
+    @When("I delete relationship between project {string} and todo {string} with status {string}")
+    public void i_delete_project_todo_rel(String id1, String id2, String aStatus) throws Exception {
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/projects/" + id1 + "/tasks/" + id2)
+                .delete()
+                .build();
+
+        Response response = client.newCall(request).execute();
+        assertEquals(Integer.parseInt(aStatus), response.code());
+    }
+    @Then("deleted relationship for project {string} and todo does not exist")
+    public void verify_delete_relationship_project_todo(String id1) throws Exception {
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/projects/" + id1 + "/tasks")
+                .get()
+                .build();
+
+        Response response = client.newCall(request).execute();
+
+        String responseBody = response.body().string();
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+        JSONArray todos = (JSONArray) responseJson.get("todos");
+
+        for (Object todoObject : todos) {
+            JSONObject todo = (JSONObject) todoObject;
+            String id = (String) todo.get("id");
+            assertNotEquals(id, id1);
+        }
+
+    }
+
 }
