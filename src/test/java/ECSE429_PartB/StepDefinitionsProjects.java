@@ -1,5 +1,6 @@
 package ECSE429_PartB;
 
+import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -56,8 +57,6 @@ public class StepDefinitionsProjects {
 
         Response response = client.newCall(request).execute();
         statusCode = response.code();
-
-        System.out.println(statusCode);
 
         // Save the id for testing
         String responseBody = response.body().string();
@@ -307,6 +306,194 @@ public class StepDefinitionsProjects {
                 .build();
 
         // Check for errors
+        Response response = client.newCall(request).execute();
+        statusCode = response.code();
+
+        String responseBody = response.body().string();
+
+        // Will raise EOF error if empty so must check
+        if (!responseBody.isEmpty()) {
+            JSONParser parser = new JSONParser();
+            JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+
+            errorMessages = (JSONArray) responseJson.get("errorMessages");
+        }
+    }
+
+    /* Update a project title */
+    // Normal Flow
+    @When("I update the title of the project to {string}")
+    public void i_update_the_title_of_the_project_to(String title) throws IOException, ParseException {
+        JSONObject obj = new JSONObject();
+
+        if (title.equalsIgnoreCase("null")) title = null; // specifically for alternate flow
+        obj.put("title", title);
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+
+        // Make a request to create a new project
+        Request request = new Request.Builder()
+                .url(url + "/" + testProjectId)
+                .put(body)
+                .build();
+
+        Response response = client.newCall(request).execute();
+        statusCode = response.code();
+
+        String responseBody = response.body().string();
+
+        // Will raise EOF error if empty so must check
+        if (!responseBody.isEmpty()) {
+            JSONParser parser = new JSONParser();
+            JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+
+            errorMessages = (JSONArray) responseJson.get("errorMessages");
+        }
+    }
+
+    @And("the project title should be {string}")
+    public void the_project_title_should_be(String title) throws IOException, ParseException {
+        Request request = new Request.Builder()
+                .url(url + "/" + testProjectId)
+                .get()
+                .build();
+
+        Response response = client.newCall(request).execute();
+
+        String responseBody = response.body().string();
+
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+        JSONArray projects = (JSONArray) responseJson.get("projects");
+
+        for (Object project : projects) {
+            JSONObject newProject = (JSONObject) project;
+            if (newProject.get("id").equals(testProjectId)) {
+                assertEquals(title, newProject.get("title"));
+            }
+        }
+    }
+
+    // Error Flow
+    @When("I update the title of a project with an invalid ID {string} to {string}")
+    public void i_update_the_title_of_a_project_with_an_invalid_id(String id, String title) throws IOException, ParseException {
+        JSONObject obj = new JSONObject();
+        obj.put("title", title);
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+
+        // Make a request to create a new project
+        Request request = new Request.Builder()
+                .url(url + "/" + id)
+                .put(body)
+                .build();
+
+        Response response = client.newCall(request).execute();
+        statusCode = response.code();
+
+        String responseBody = response.body().string();
+
+        // Will raise EOF error if empty so must check
+        if (!responseBody.isEmpty()) {
+            JSONParser parser = new JSONParser();
+            JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+
+            errorMessages = (JSONArray) responseJson.get("errorMessages");
+        }
+    }
+
+    /* Update a project description */
+    // Normal Flow
+    @Given("a project with description {string} exists in the system")
+    public void a_project_with_description_exists_in_the_system(String description) throws IOException, ParseException {
+        // Create new project with desired description
+        JSONObject obj = new JSONObject();
+
+        obj.put("description", description);
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+
+        // Make a request to create a new project
+        Request request = new Request.Builder()
+                .url(url)
+                .post(body)
+                .build();
+
+        Response response = client.newCall(request).execute();
+        String responseBody = response.body().string();
+
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+
+        testProjectId = (String) responseJson.get("id");
+    }
+
+    @When("I update the description of the project to {string}")
+    public void i_update_the_description_of_the_project_to(String description) throws IOException, ParseException {
+        JSONObject obj = new JSONObject();
+
+        if (description.equalsIgnoreCase("null")) description = null; // specifically for alternate flow
+        obj.put("description", description);
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+
+        // Make a request to create a new project
+        Request request = new Request.Builder()
+                .url(url + "/" + testProjectId)
+                .put(body)
+                .build();
+
+        Response response = client.newCall(request).execute();
+        statusCode = response.code();
+
+        String responseBody = response.body().string();
+
+        // Will raise EOF error if empty so must check
+        if (!responseBody.isEmpty()) {
+            JSONParser parser = new JSONParser();
+            JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+
+            errorMessages = (JSONArray) responseJson.get("errorMessages");
+        }
+    }
+
+    @And("the project description should be {string}")
+    public void the_project_description_should_be(String description) throws IOException, ParseException {
+        Request request = new Request.Builder()
+                .url(url + "/" + testProjectId)
+                .get()
+                .build();
+
+        Response response = client.newCall(request).execute();
+
+        String responseBody = response.body().string();
+
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+        JSONArray projects = (JSONArray) responseJson.get("projects");
+
+        for (Object project : projects) {
+            JSONObject newProject = (JSONObject) project;
+            if (newProject.get("id").equals(testProjectId)) {
+                assertEquals(description, newProject.get("description"));
+            }
+        }
+    }
+
+    // Error Flow
+    @When("I update the description of a project with an invalid ID {string} to {string}")
+    public void i_update_the_description_of_a_project_with_an_invalid_id(String id, String description) throws IOException, ParseException {
+        JSONObject obj = new JSONObject();
+        obj.put("description", description);
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+
+        // Make a request to create a new project
+        Request request = new Request.Builder()
+                .url(url + "/" + id)
+                .put(body)
+                .build();
+
         Response response = client.newCall(request).execute();
         statusCode = response.code();
 

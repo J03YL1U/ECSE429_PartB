@@ -5,7 +5,7 @@ Feature: Delete project
 
   # Normal Flow
   @scenarioOutline
-  Scenario Outline: 
+  Scenario Outline: Delete a project
     Given a project with title "<title>" exists in the system
     When I delete a project with id "<id>"
     Then the expected project status code received should be <status_code>
@@ -16,7 +16,7 @@ Feature: Delete project
 
   # Alternate Flow (Malformed request despite being a string)
   @scenarioOutline
-  Scenario Outline:
+  Scenario Outline: Delete a project with unique ID
     When I delete a project with id "<id>"
     Then the expected project status code received should be <status_code>
     And the number of projects in the system will be <number_of_projects>
@@ -26,7 +26,7 @@ Feature: Delete project
 
   # Error Flow (Deleting a project that doesn't exist)
   @scenarioOutline
-  Scenario Outline:
+  Scenario Outline: Delete a project with non-existent ID
     When I delete a project with id "<id>"
     Then the expected project status code received should be <status_code>
     And the number of projects in the system will be <number_of_projects>
