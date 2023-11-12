@@ -223,5 +223,97 @@ public class StepDefinitionsCategories {
         this.idNewCategory = (String) responseJson.get("id");
     }
 
+    //    ID008: Update a category's title
+    @Given("an existing category with title {string}")
+    public void anExistingCategoryWithTitle(String title) throws Exception {
+        JSONObject obj = new JSONObject();
+
+        obj.put("title", title);
+        obj.put("description", "existing category");
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/categories")
+                .post(body)
+                .build();
+
+        Response response = client.newCall(request).execute();
+        String responseBody = response.body().string();
+
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+
+        this.existingId = (String) responseJson.get("id");
+    }
+
+    @When("I update the existing title to {string}")
+    public void iUpdateTheExistingTitleTo(String newTitle) throws Exception {JSONObject obj = new JSONObject();
+        obj.put("title", newTitle);
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/categories/" + this.existingId)
+                .post(body)
+                .build();
+
+        Response response = client.newCall(request).execute();
+        String responseBody = response.body().string();
+
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+
+        this.errorMessage = (JSONArray) responseJson.get("errorMessages");
+        this.idNewCategory = (String) responseJson.get("id");
+
+    }
+    @And("the existing category's title should be {string}")
+    public void theExistingCategorySTitleShouldBe(String newTitle) throws Exception {
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/categories/" + this.existingId)
+                .get()
+                .build();
+
+        Response response = client.newCall(request).execute();
+
+        String responseBody = response.body().string();
+
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+
+        JSONObject jsonObject = new JSONObject(responseJson);
+        JSONArray categories = (JSONArray) jsonObject.get("categories");
+
+        for (Object categoriesObj : categories) {
+            JSONObject todo = (JSONObject) categoriesObj;
+            String title = (String) todo.get("title");
+            assertEquals(newTitle, title);
+        }
+    }
+
+    @When("I try to update the title to {string} of a category that doesn't exist")
+    public void iTryToUpdateTheTitleToOfACategoryThatDoesnTExist(String newTitle) throws Exception {
+        JSONObject obj = new JSONObject();
+
+        obj.put("title", newTitle);
+        String invalidId = "1234567890";
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/categories/" + invalidId)
+                .post(body)
+                .build();
+
+        Response response = client.newCall(request).execute();
+        String responseBody = response.body().string();
+
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+
+        this.errorMessage = (JSONArray) responseJson.get("errorMessages");
+        this.idNewCategory = (String) responseJson.get("id");
+    }
 
 }
