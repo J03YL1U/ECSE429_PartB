@@ -5,7 +5,7 @@ Feature: Update a category's description
 
   #Normal Flow
   @scenarioOutline
-  Scenario Outline: Update an existing category with a new title
+  Scenario Outline: Update an existing category with a new description
     Given an existing category "<existing_category>" with description "<existing_desc>"
     When I update the existing description to "<new_desc>"
     Then the expected category status code received from the system is "<statusCode>"
@@ -16,7 +16,7 @@ Feature: Update a category's description
 
   #Alternate flow
   @scenarioOutline
-  Scenario Outline: Update an existing category with the same title
+  Scenario Outline: Update an existing category with the same description
     Given an existing category "<existing_category>" with description "<existing_desc>"
     When I update the existing description to "<new_desc>"
     Then the expected category status code received from the system is "<statusCode>"
@@ -27,7 +27,7 @@ Feature: Update a category's description
 
   #Error flow
   @scenarioOutline
-  Scenario Outline: Update a non existing category with a new category
+  Scenario Outline: Update a non existing category with a description
     Given an existing category "<existing_category>" with description "<existing_desc>"
     When I update the description to "<new_desc>" of a category that doesn't exist
     Then the expected category status code received from the system is "<statusCode>"
