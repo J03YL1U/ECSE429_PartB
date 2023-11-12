@@ -8,6 +8,7 @@ import okhttp3.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.TestMethodOrder;
 
@@ -21,6 +22,8 @@ public class StepDefinitionsCategories {
     private JSONArray errorMessage;
     private String idNewCategory;
     private String statusCode;
+
+    private String idExistingTodo;
 
 
     //    ID006: Create a category
@@ -246,7 +249,8 @@ public class StepDefinitionsCategories {
     }
 
     @When("I update the existing title to {string}")
-    public void iUpdateTheExistingTitleTo(String newTitle) throws Exception {JSONObject obj = new JSONObject();
+    public void iUpdateTheExistingTitleTo(String newTitle) throws Exception {
+        JSONObject obj = new JSONObject();
         obj.put("title", newTitle);
 
         RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
@@ -266,6 +270,7 @@ public class StepDefinitionsCategories {
         this.idNewCategory = (String) responseJson.get("id");
         this.statusCode = String.valueOf(response.code());
     }
+
     @And("the existing category's title should be {string}")
     public void theExistingCategorySTitleShouldBe(String newTitle) throws Exception {
         Request request = new Request.Builder()
@@ -361,7 +366,7 @@ public class StepDefinitionsCategories {
             }
         }
 
-       assertTrue(categoryRemoved);
+        assertTrue(categoryRemoved);
     }
 
     @Given("a list of categories {string} with two categories of the title")
@@ -422,6 +427,138 @@ public class StepDefinitionsCategories {
 
         this.errorMessage = (JSONArray) responseJson.get("errorMessages");
         this.idNewCategory = (String) responseJson.get("id");
+        this.statusCode = String.valueOf(response.code());
+    }
+    //    ID010: add category-todo relationship
+
+    @And("an existing todo with title {string}")
+    public void anExistingTodoWithId(String title) throws Exception {
+        JSONObject obj = new JSONObject();
+
+        obj.put("title", title);
+        obj.put("doneStatus", true);
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/todos")
+                .post(body)
+                .build();
+
+        Response response = client.newCall(request).execute();
+        String responseBody = response.body().string();
+
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+
+        this.idExistingTodo = (String) responseJson.get("id");
+    }
+
+    @When("create a relationship between {string} and {string}")
+    public void createARelationshipBetweenAnd(String category, String todo) throws Exception {
+        JSONObject obj = new JSONObject();
+
+        obj.put("id", this.idExistingTodo);
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/categories/" + this.existingId + "/todos")
+                .post(body)
+                .build();
+
+        Response response = client.newCall(request).execute();
+
+        this.statusCode = String.valueOf(response.code());
+    }
+
+    @When("create a new todo {string} with category that doesn't exist")
+    public void createANewTodoWithCategoryThatDoesnTExist(String title) throws Exception {
+        JSONObject obj = new JSONObject();
+
+        String invalidId = "1234567890";
+        obj.put("title", title);
+        obj.put("doneStatus", true);
+        obj.put("category", invalidId);
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/todos")
+                .post(body)
+                .build();
+
+        Response response = client.newCall(request).execute();
+        String responseBody = response.body().string();
+
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+
+        this.errorMessage = (JSONArray) responseJson.get("errorMessages");
+        this.existingId = (String) responseJson.get("id");
+        this.statusCode = String.valueOf(response.code());
+    }
+
+
+    @And("{string} will be part of {string}")
+    public void willBePartOf(String todo, String category) throws Exception, ParseException {
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/categories/" + this.existingId)
+                .get()
+                .build();
+
+        Response response = client.newCall(request).execute();
+
+        String responseBody = response.body().string();
+
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+        JSONArray categories = (JSONArray) responseJson.get("categories");
+
+        boolean relationshipPresent = false;
+
+        for (Object categoryObject : categories) {
+            JSONObject curr_category = (JSONObject) categoryObject;
+            JSONArray todos = (JSONArray) curr_category.get("todos");
+            for (Object todoObject : todos) {
+                JSONObject curr_todo = (JSONObject) todoObject;
+                String todo_id = (String) curr_category.get("id");
+                if (todo_id.equals(this.idExistingTodo)) {
+                    relationshipPresent = true;
+                }
+            }
+        }
+
+        assertTrue(relationshipPresent);
+    }
+
+    @When("create a new category {string} with todo {string}")
+    public void createANewCategoryWithTodo(String todo, String category) throws Exception {
+        JSONObject todos = new JSONObject();
+
+        todos.put("id", this.idExistingTodo);
+
+        JSONObject obj = new JSONObject();
+
+        obj.put("title", category);
+        obj.put("todos", todos);
+
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/categories")
+                .post(body)
+                .build();
+
+        Response response = client.newCall(request).execute();
+        String responseBody = response.body().string();
+
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+
+        this.existingId = (String) responseJson.get("id");
+        this.errorMessage = (JSONArray) responseJson.get("errorMessages");
         this.statusCode = String.valueOf(response.code());
     }
 }

@@ -1,5 +1,5 @@
 Feature: Delete a category
-  As a user,'
+  As a user,
   I want to be able to delete a category from the system,
   so that useless categories are removed.
 
