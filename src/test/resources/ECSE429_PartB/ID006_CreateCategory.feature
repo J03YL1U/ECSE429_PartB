@@ -13,7 +13,7 @@ Feature: Create a category
     And "<added_category>" category will be in the list of category
     Examples:
       | current_categories | added_category | statusCode | number_of_categories |
-      | Home               | Pottery        | 200        | 4                    |
+      | Home               | Pottery        | 201        | 4                    |
 
   #Alternate flow
   @scenarioOutline
@@ -25,7 +25,7 @@ Feature: Create a category
     And "<existing_title_category>" category will be in the list of category
     Examples:
       | current_categories | existing_title_category | statusCode | number_of_categories |
-      | Home               | Home                    | 200        | 4                    |
+      | Home               | Home                    | 201        | 4                    |
 
   #Error flow
   @scenarioOutline
@@ -36,4 +36,4 @@ Feature: Create a category
     And the number of category in the system will be "<number_of_categories>"
     Examples:
       | current_categories | no_title_category | statusCode | number_of_categories |
-      | Home               |                   | 404        | 3                    |
+      | Home               |                   | 400        | 3                    |

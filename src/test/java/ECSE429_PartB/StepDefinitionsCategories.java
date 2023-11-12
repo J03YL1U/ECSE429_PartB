@@ -20,6 +20,7 @@ public class StepDefinitionsCategories {
     private String existingId;
     private JSONArray errorMessage;
     private String idNewCategory;
+    private String statusCode;
 
 
     //    ID006: Create a category
@@ -67,18 +68,13 @@ public class StepDefinitionsCategories {
 
         this.errorMessage = (JSONArray) responseJson.get("errorMessages");
         this.idNewCategory = (String) responseJson.get("id");
+        this.statusCode = String.valueOf(response.code());
     }
 
 
     @Then("the expected category status code received from the system is {string}")
     public void theExpectedCategoryStatusCodeReceivedFromTheSystemIs(String statusCode) throws Exception {
-        Request request = new Request.Builder()
-                .url("http://localhost:4567/categories/" + idNewCategory)
-                .get()
-                .build();
-
-        Response response = client.newCall(request).execute();
-        assertEquals(Integer.parseInt(statusCode), response.code());
+        assertEquals(statusCode, this.statusCode);
     }
 
     @And("the number of category in the system will be {string}")
@@ -172,6 +168,7 @@ public class StepDefinitionsCategories {
 
         this.errorMessage = (JSONArray) responseJson.get("errorMessages");
         this.idNewCategory = (String) responseJson.get("id");
+        this.statusCode = String.valueOf(response.code());
     }
 
     @And("the existing category's description should be {string}")
@@ -221,6 +218,7 @@ public class StepDefinitionsCategories {
 
         this.errorMessage = (JSONArray) responseJson.get("errorMessages");
         this.idNewCategory = (String) responseJson.get("id");
+        this.statusCode = String.valueOf(response.code());
     }
 
     //    ID008: Update a category's title
@@ -266,7 +264,7 @@ public class StepDefinitionsCategories {
 
         this.errorMessage = (JSONArray) responseJson.get("errorMessages");
         this.idNewCategory = (String) responseJson.get("id");
-
+        this.statusCode = String.valueOf(response.code());
     }
     @And("the existing category's title should be {string}")
     public void theExistingCategorySTitleShouldBe(String newTitle) throws Exception {
@@ -314,6 +312,116 @@ public class StepDefinitionsCategories {
 
         this.errorMessage = (JSONArray) responseJson.get("errorMessages");
         this.idNewCategory = (String) responseJson.get("id");
+        this.statusCode = String.valueOf(response.code());
+
     }
 
+    //    ID009: delete a category
+    @When("I delete a category {string}")
+    public void iDeleteACategory(String category) throws Exception {
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/categories/" + this.existingId)
+                .delete()
+                .build();
+
+        Response response = client.newCall(request).execute();
+        String responseBody = response.body().string();
+
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+
+        this.errorMessage = (JSONArray) responseJson.get("errorMessages");
+        this.idNewCategory = (String) responseJson.get("id");
+        this.statusCode = String.valueOf(response.code());
+    }
+
+    @And("{string} category will no longer exist in the system")
+    public void categoryWillNoLongerExistInTheSystem(String deleteCategory) throws Exception {
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/categories")
+                .get()
+                .build();
+
+        Response response = client.newCall(request).execute();
+        assertEquals(200, response.code());
+
+        String responseBody = response.body().string();
+
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+        JSONArray todos = (JSONArray) responseJson.get("categories");
+
+        boolean categoryRemoved = true;
+
+        for (Object todoObject : todos) {
+            JSONObject todo = (JSONObject) todoObject;
+            String title = (String) todo.get("id");
+            if (title.equals(this.existingId)) {
+                categoryRemoved = false;
+            }
+        }
+
+       assertTrue(categoryRemoved);
+    }
+
+    @Given("a list of categories {string} with two categories of the title")
+    public void aListOfCategoriesWithTwoCategoriesOfTheTitle(String category) throws Exception {
+        JSONObject obj = new JSONObject();
+
+        obj.put("title", category);
+        obj.put("description", "#1");
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/categories")
+                .post(body)
+                .build();
+
+        Response response = client.newCall(request).execute();
+        String responseBody = response.body().string();
+
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+
+        this.existingId = (String) responseJson.get("id");
+
+        obj = new JSONObject();
+
+        obj.put("title", category);
+        obj.put("description", "#2");
+
+        body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+
+        request = new Request.Builder()
+                .url("http://localhost:4567/categories")
+                .post(body)
+                .build();
+
+        client.newCall(request).execute();
+    }
+
+    @When("I delete a category {string} that is not part of the list")
+    public void iDeleteACategoryThatIsNotPartOfTheList(String category) throws Exception {
+        JSONObject obj = new JSONObject();
+
+        String invalidId = "1234567890";
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), obj.toString());
+
+        Request request = new Request.Builder()
+                .url("http://localhost:4567/categories/" + invalidId)
+                .delete()
+                .build();
+
+        Response response = client.newCall(request).execute();
+        String responseBody = response.body().string();
+
+        JSONParser parser = new JSONParser();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
+
+        this.errorMessage = (JSONArray) responseJson.get("errorMessages");
+        this.idNewCategory = (String) responseJson.get("id");
+        this.statusCode = String.valueOf(response.code());
+    }
 }
