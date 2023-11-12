@@ -330,13 +330,7 @@ public class StepDefinitionsCategories {
                 .build();
 
         Response response = client.newCall(request).execute();
-        String responseBody = response.body().string();
 
-        JSONParser parser = new JSONParser();
-        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
-
-        this.errorMessage = (JSONArray) responseJson.get("errorMessages");
-        this.idNewCategory = (String) responseJson.get("id");
         this.statusCode = String.valueOf(response.code());
     }
 

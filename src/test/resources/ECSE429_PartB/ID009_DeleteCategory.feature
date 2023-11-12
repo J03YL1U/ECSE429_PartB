@@ -25,7 +25,7 @@ Feature: Delete a category
     And "<deleted_category>" category will no longer exist in the system
     Examples:
       | current_categories | deleted_category | statusCode | number_of_categories |
-      | Pottery            | Pottery          | 200        | 2                    |
+      | Pottery            | Pottery          | 200        | 3                    |
 
   #Error flow
   @scenarioOutline
